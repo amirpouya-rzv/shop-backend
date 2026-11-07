@@ -29,12 +29,25 @@ try {
 app.set("trust proxy", 1);
 
 // Swagger UI is mounted before helmet so its CSP does not interfere with the docs page
+// On Vercel the package's own asset files are not served (blank page), so load them from a CDN there
+const swaggerCdn = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5";
+const swaggerAssets: Record<string, unknown> = process.env.VERCEL
+  ? {
+      customCssUrl: `${swaggerCdn}/swagger-ui.min.css`,
+      customJs: [
+        `${swaggerCdn}/swagger-ui-bundle.min.js`,
+        `${swaggerCdn}/swagger-ui-standalone-preset.min.js`,
+      ],
+    }
+  : {};
+
 app.use(
   "/api/docs",
   swaggerUi.serve,
   swaggerUi.setup(openapi, {
     customSiteTitle: "Shop API Docs",
     swaggerOptions: { persistAuthorization: true },
+    ...swaggerAssets,
   })
 );
 
